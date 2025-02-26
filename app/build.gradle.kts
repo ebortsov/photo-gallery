@@ -85,4 +85,7 @@ dependencies {
     // Coil (image loading and caching)
     implementation(libs.coil)
     implementation(libs.coil.network.okhttp)
+
+    // Paging
+    implementation(libs.androidx.paging.runtime)
 }

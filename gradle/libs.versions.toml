@@ -14,6 +14,7 @@ constraintlayout = "2.2.0"
 fragmentKtx = "1.8.6"
 lifecycleViewmodelKtx = "2.8.7"
 lifecycleRuntimeKtx = "2.8.7"
+pagingRuntime = "3.3.6"
 recyclerview = "1.4.0"
 retrofit = "2.11.0"
 okhttp = "5.0.0-alpha.14"
@@ -26,6 +27,7 @@ converterMoshi = "2.11.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-paging-runtime = { module = "androidx.paging:paging-runtime", version.ref = "pagingRuntime" }
 coil = { module = "io.coil-kt.coil3:coil", version.ref = "coil" }
 coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }

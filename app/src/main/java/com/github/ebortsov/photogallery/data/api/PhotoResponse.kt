@@ -1,4 +1,4 @@
-package com.github.ebortsov.photogallery.api
+package com.github.ebortsov.photogallery.data.api
 
 data class PhotoResponse(
     val id: String,

@@ -1,17 +1,22 @@
-package com.github.ebortsov.photogallery
+package com.github.ebortsov.photogallery.ui
 
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.paging.CombinedLoadStates
+import androidx.paging.LoadState
 import androidx.recyclerview.widget.GridLayoutManager
 import com.github.ebortsov.photogallery.databinding.PhotoGalleryFragmentBinding
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 private const val TAG = "PhotoGalleryFragment"
@@ -28,20 +33,28 @@ class PhotoGalleryFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = PhotoGalleryFragmentBinding.inflate(inflater, container, false)
-        binding.photoGrid.layoutManager = GridLayoutManager(requireContext(), 3)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        binding.photoGrid.layoutManager = GridLayoutManager(requireContext(), 3)
+        val adapter = GalleryPagingDataAdapter()
+        binding.photoGrid.adapter = adapter
         viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                photoGalleryViewModel.galleryItems.collect { items ->
-                    binding.photoGrid.adapter = PhotoGalleryAdapter(items)
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                photoGalleryViewModel.galleryPages.collectLatest { pagingData ->
+                    adapter.submitData(pagingData)
                 }
             }
         }
+
+        adapter.addLoadStateListener { loadState ->
+            binding.bottomProgressIndicator.isVisible = loadState.append == LoadState.Loading
+            binding.topProgressIndicator.isVisible = loadState.prepend == LoadState.Loading
+        }
+
     }
 
     override fun onDestroyView() {
