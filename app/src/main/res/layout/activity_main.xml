@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/fragment_container"
-    android:name="com.github.ebortsov.photogallery.PhotoGalleryFragment"
+    android:name="com.github.ebortsov.photogallery.ui.PhotoGalleryFragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity" />
+    tools:context=".ui.MainActivity" />

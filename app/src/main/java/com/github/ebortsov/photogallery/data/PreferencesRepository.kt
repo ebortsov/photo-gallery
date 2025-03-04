@@ -1,0 +1,44 @@
+package com.github.ebortsov.photogallery.data
+
+import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.preferencesDataStoreFile
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+
+class PreferencesRepository private constructor (
+    private val dataStore: DataStore<Preferences>
+) {
+    val storedQuery: Flow<String> = dataStore.data.map {
+        it[SEARCH_QUERY_KEY] ?: ""
+    }.distinctUntilChanged()
+
+    suspend fun setStoredQuery(query: String) {
+        dataStore.edit {
+            it[SEARCH_QUERY_KEY] = query
+        }
+    }
+
+    companion object {
+        private var instance: PreferencesRepository? = null
+        private val SEARCH_QUERY_KEY = stringPreferencesKey("search_query")
+
+        fun initialize(context: Context) {
+            if (instance == null) {
+                val dataStore = PreferenceDataStoreFactory.create {
+                    context.preferencesDataStoreFile("settings")
+                }
+
+                instance = PreferencesRepository(dataStore)
+            }
+        }
+
+        fun get(): PreferencesRepository =
+            instance ?: throw IllegalStateException("PreferencesRepository must be initialized")
+    }
+}

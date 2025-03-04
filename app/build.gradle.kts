@@ -85,4 +85,6 @@ dependencies {
     // Coil (image loading and caching)
     implementation(libs.coil)
     implementation(libs.coil.network.okhttp)
+
+    implementation("androidx.datastore:datastore-preferences:1.1.3")
 }

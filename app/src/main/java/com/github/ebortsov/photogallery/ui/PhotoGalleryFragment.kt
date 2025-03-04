@@ -1,10 +1,14 @@
-package com.github.ebortsov.photogallery
+package com.github.ebortsov.photogallery.ui
 
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.ViewCompat
+import androidx.appcompat.widget.SearchView
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -37,10 +41,41 @@ class PhotoGalleryFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                photoGalleryViewModel.galleryItems.collect { items ->
-                    binding.photoGrid.adapter = PhotoGalleryAdapter(items)
+                photoGalleryViewModel.uiState.collect { state ->
+                    binding.photoGrid.adapter = PhotoGalleryAdapter(state.images)
+                    binding.searchView.setQuery(state.query, false)
                 }
             }
+        }
+
+        binding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                Log.d(TAG, "Submit query: $query")
+                photoGalleryViewModel.setQuery(query ?: "")
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                Log.d(TAG, "QueryTextChange: $newText")
+                return false
+            }
+
+        })
+
+        binding.searchView.setOnCloseListener {
+            Log.d(TAG,"SearchView: onCloseListener")
+            false
+        }
+
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
+            val systemInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.updatePadding(
+                top = systemInsets.top,
+                bottom = systemInsets.bottom,
+                left = systemInsets.left,
+                right = systemInsets.right
+            )
+            WindowInsetsCompat.CONSUMED
         }
     }
 

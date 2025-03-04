@@ -1,13 +1,13 @@
-package com.github.ebortsov.photogallery
+package com.github.ebortsov.photogallery.ui
 
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import coil3.load
 import coil3.request.placeholder
+import com.github.ebortsov.photogallery.R
 import com.github.ebortsov.photogallery.databinding.ListItemGalleryBinding
-import com.github.ebortsov.photogallery.model.GalleryItem
+import com.github.ebortsov.photogallery.data.model.GalleryItem
 
 class PhotoViewHolder(
     private val binding: ListItemGalleryBinding
