@@ -1,19 +1,23 @@
 package com.github.ebortsov.photogallery.data
 
+import com.github.ebortsov.photogallery.data.api.AccessKeyInterceptor
 import com.github.ebortsov.photogallery.data.api.PhotoResponse
 import com.github.ebortsov.photogallery.data.api.UnsplashApi
 import com.github.ebortsov.photogallery.data.model.GalleryItem
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import kotlinx.coroutines.delay
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import kotlin.random.Random
 
-const val PHOTOS_PER_PAGE = 50
+const val PHOTOS_PER_PAGE = 30
 
 interface PhotoRepository {
-    suspend fun fetchPhotos(page: Int): List<PhotoResponse>
+    suspend fun fetchPhotos(page: Int): List<GalleryItem>
+    suspend fun searchPhotos(query: String, page: Int): List<GalleryItem>
 }
 
 class PhotoRepositoryUnsplashApi : PhotoRepository {
@@ -26,22 +30,38 @@ class PhotoRepositoryUnsplashApi : PhotoRepository {
             .addLast(KotlinJsonAdapterFactory())
             .build()
 
+        val loggingInterceptor = HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BASIC
+        }
+
+        val okHttpClient = OkHttpClient
+            .Builder()
+            .addInterceptor(AccessKeyInterceptor())
+            .addInterceptor(loggingInterceptor)
+            .build()
+
         val apiCreator = Retrofit.Builder()
             .baseUrl("https://api.unsplash.com/") // Note the trailing slash
             .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .client(okHttpClient)
             .build()
 
         unsplashApi = apiCreator.create(UnsplashApi::class.java)
     }
 
-    override suspend fun fetchPhotos(page: Int): List<PhotoResponse> {
+    override suspend fun fetchPhotos(page: Int): List<GalleryItem> {
         val response = unsplashApi.fetchPhotos(page)
-        return response
+        return response.map(PhotoResponse::toGalleryItem)
+    }
+
+    override suspend fun searchPhotos(query: String, page: Int): List<GalleryItem> {
+        val response = unsplashApi.searchPhotos(query, page)
+        return response.results.map(PhotoResponse::toGalleryItem)
     }
 }
 
 class PhotoRepositoryMock : PhotoRepository {
-    override suspend fun fetchPhotos(page: Int): List<PhotoResponse> {
+    override suspend fun fetchPhotos(page: Int): List<GalleryItem> {
         val result = (1..PHOTOS_PER_PAGE).map {
             val photoId = Random.nextLong().toString()
             val photoUrl = loremPicsumPhotoUrl(photoId) // Nuh just fetch the same small photo
@@ -59,8 +79,13 @@ class PhotoRepositoryMock : PhotoRepository {
             )
         }
         delay(2000) // simulate the delay
-        return result
+        return result.map(PhotoResponse::toGalleryItem)
     }
+
+    override suspend fun searchPhotos(query: String, page: Int): List<GalleryItem> {
+        return fetchPhotos(page)
+    }
+
     private fun loremPicsumPhotoUrl(id: String): String {
         return "https://picsum.photos/seed/$id/200"
     }

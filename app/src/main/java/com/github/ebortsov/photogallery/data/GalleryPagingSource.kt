@@ -9,28 +9,29 @@ import com.github.ebortsov.photogallery.data.model.GalleryItem
 private const val TAG = "GalleryPagingSource"
 
 class GalleryPagingSource(
-    private val photoRepository: PhotoRepository
+    private val photoRepository: PhotoRepository,
+    private val searchQuery: String
 ) : PagingSource<Int, GalleryItem>() {
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, GalleryItem> {
         val pageIndex = params.key ?: 1
 
         try {
-            val photos = photoRepository.fetchPhotos(pageIndex)
-            Log.d(TAG, "load: successfully fetched ${photos}: $photos")
+            val photos = if (searchQuery.isEmpty())
+                photoRepository.fetchPhotos(pageIndex)
+            else
+                photoRepository.searchPhotos(searchQuery, pageIndex)
+
+            Log.d(TAG, "load: fetched: $photos")
             return LoadResult.Page(
-                photos.map(PhotoResponse::toGalleryItem),
+                photos,
                 prevKey = if (pageIndex > 1) pageIndex - 1 else null,
                 nextKey = pageIndex + 1
             )
         } catch (ex: Exception) {
-            Log.e(TAG, "load: $ex")
+            Log.d(TAG, "load: failed to fetch photos, $ex")
             return LoadResult.Error(ex)
         }
     }
 
-    override fun getRefreshKey(state: PagingState<Int, GalleryItem>): Int? {
-        val anchorPosition = state.anchorPosition ?: return null
-        val currentPage = state.closestPageToPosition(anchorPosition) ?: return null
-        return currentPage.prevKey?.plus(1) ?: currentPage.nextKey?.minus(1)
-    }
+    override fun getRefreshKey(state: PagingState<Int, GalleryItem>): Int = 1
 }

@@ -1,27 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <androidx.appcompat.widget.AppCompatEditText
+        android:hint="@string/search_for_photos"
+        android:inputType="text"
+        android:maxLines="1"
+        android:imeOptions="actionSearch"
+        android:autofillHints="no"
+        android:id="@+id/search_view"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:paddingStart="8dp"/>
 
     <com.google.android.material.progressindicator.LinearProgressIndicator
+        app:layout_constraintTop_toBottomOf="@id/search_view"
         android:id="@+id/top_progress_indicator"
         android:layout_gravity="top"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:indeterminate="true"
         android:visibility="gone"/>
 
     <androidx.recyclerview.widget.RecyclerView
+        app:layout_constraintTop_toBottomOf="@id/search_view"
         android:id="@+id/photo_grid"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"/>
 
     <com.google.android.material.progressindicator.LinearProgressIndicator
+        app:layout_constraintBottom_toBottomOf="@id/photo_grid"
         android:id="@+id/bottom_progress_indicator"
         android:layout_gravity="bottom"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:indeterminate="true"
         android:visibility="gone"/>
 
-</FrameLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

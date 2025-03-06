@@ -70,6 +70,7 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
     // For converting response bodies from OkHttp
     implementation(libs.retrofit2.converter.scalars)
@@ -88,4 +89,7 @@ dependencies {
 
     // Paging
     implementation(libs.androidx.paging.runtime)
+
+    // DataStore (previously known as SharedPreferences)
+    implementation("androidx.datastore:datastore-preferences:1.1.3")
 }
