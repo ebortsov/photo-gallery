@@ -1,5 +1,6 @@
 package com.github.ebortsov.photogallery.data
 
+import android.util.Log
 import com.github.ebortsov.photogallery.data.api.AccessKeyInterceptor
 import com.github.ebortsov.photogallery.data.api.PhotoResponse
 import com.github.ebortsov.photogallery.data.api.UnsplashApi
@@ -75,14 +76,19 @@ class PhotoRepositoryMock : PhotoRepository {
                     thumb = photoUrl
                 ),
                 description = "Photo with id $photoId",
-                slug = "photo-$photoId-RANDOMSUFFIX"
+                slug = "photo-$page-$photoId-RANDOMSUFFIX"
             )
         }
         delay(2000) // simulate the delay
+
+        if (Random.nextInt(6) == 0) { // randomly throw exception for page with change 1/6
+            throw Exception("PhotoMockRepository test exception")
+        }
         return result.map(PhotoResponse::toGalleryItem)
     }
 
     override suspend fun searchPhotos(query: String, page: Int): List<GalleryItem> {
+        Log.d(this::class.simpleName, "searchPhotos query=\"$query\" page=$page")
         return fetchPhotos(page)
     }
 

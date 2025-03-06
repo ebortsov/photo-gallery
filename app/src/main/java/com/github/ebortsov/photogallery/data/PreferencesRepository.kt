@@ -30,6 +30,6 @@ class PreferencesRepository private constructor(private val dataStore: DataStore
             instance = PreferencesRepository(dataStore)
         }
 
-        fun get() = checkNotNull(instance) { "PreferencesRepository must be initialized" }
+        fun getInstance() = checkNotNull(instance) { "PreferencesRepository must be initialized" }
     }
 }

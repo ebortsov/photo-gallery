@@ -21,11 +21,14 @@ class GalleryPagingSource(
             else
                 photoRepository.searchPhotos(searchQuery, pageIndex)
 
+            val prevKey = if (pageIndex > 1) pageIndex - 1 else null
+            val nextKey = if (photos.isNotEmpty()) pageIndex + 1 else null
+
             Log.d(TAG, "load: fetched: $photos")
             return LoadResult.Page(
                 photos,
-                prevKey = if (pageIndex > 1) pageIndex - 1 else null,
-                nextKey = pageIndex + 1
+                prevKey = prevKey,
+                nextKey = nextKey
             )
         } catch (ex: Exception) {
             Log.d(TAG, "load: failed to fetch photos, $ex")

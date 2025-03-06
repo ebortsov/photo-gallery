@@ -16,12 +16,11 @@ class PhotoViewHolder(
     private val binding: ListItemGalleryBinding
 ) : RecyclerView.ViewHolder(binding.root) {
     fun bind(galleryItem: GalleryItem?) {
+        binding.itemImageView.setImageResource(R.drawable.image_downloading)
         galleryItem?.let {
             binding.itemImageView.load(it.urls.thumb) {
                 placeholder(R.drawable.image_downloading)
             }
-        } ?: {
-            binding.itemImageView.setImageResource(R.drawable.image_placeholder)
         }
     }
 }

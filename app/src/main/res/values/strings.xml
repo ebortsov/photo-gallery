@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">PhotoGallery</string>
     <string name="search_for_photos">Search for photos</string>
+    <string name="loading_error_message">Oops, something went wrong!</string>
+    <string name="retry_button_text">retry</string>
+    <string name="show_search_history">Show search history</string>
 </resources>
