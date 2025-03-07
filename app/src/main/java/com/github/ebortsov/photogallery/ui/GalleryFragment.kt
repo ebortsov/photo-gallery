@@ -156,7 +156,6 @@ class GalleryFragment : Fragment() {
                 galleryViewModel.setQuery((v as TextView).text.toString())
                 showRecentHistory(false)
                 binding.searchView.setText(query)
-                showRecentHistory(false)
             }
             searchItemBinding.root.text = query
         }
