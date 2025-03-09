@@ -86,5 +86,10 @@ dependencies {
     implementation(libs.coil)
     implementation(libs.coil.network.okhttp)
 
+    // DataStore
     implementation("androidx.datastore:datastore-preferences:1.1.3")
+
+    // Worker
+    implementation("androidx.work:work-runtime-ktx:2.10.0")
+
 }

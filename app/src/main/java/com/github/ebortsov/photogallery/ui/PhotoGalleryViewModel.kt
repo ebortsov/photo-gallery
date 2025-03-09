@@ -39,11 +39,23 @@ class PhotoGalleryViewModel : ViewModel() {
                 }
             }
         }
+
+        viewModelScope.launch {
+            preferencesRepository.isPolling.collectLatest { isPolling ->
+                _uiState.update { oldState -> oldState.copy(isPolling = isPolling) }
+            }
+        }
     }
 
     fun setQuery(query: String) {
         viewModelScope.launch {
             preferencesRepository.setStoredQuery(query)
+        }
+    }
+
+    fun toggleIsPolling() {
+        viewModelScope.launch {
+            preferencesRepository.setPolling(!uiState.value.isPolling)
         }
     }
 
