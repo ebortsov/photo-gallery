@@ -1,7 +1,6 @@
-package com.github.ebortsov.photogallery.data
+package com.github.ebortsov.photogallery.models
 
 import com.github.ebortsov.photogallery.data.api.PhotoResponse
-import com.github.ebortsov.photogallery.data.model.GalleryItem
 
 private fun slugToTitle(slug: String) =
     slug.split("-")

@@ -1,12 +1,12 @@
-package com.github.ebortsov.photogallery.ui
+package com.github.ebortsov.photogallery
 
 import android.app.Application
-import androidx.datastore.core.DataStoreFactory
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.preferencesDataStoreFile
 import com.github.ebortsov.photogallery.data.PreferencesRepository
 import com.github.ebortsov.photogallery.data.SearchHistoryRepository
 import com.github.ebortsov.photogallery.data.database.AppDatabase
+import com.github.ebortsov.photogallery.features.poll.createPollNotificationChannel
 
 class GalleryApplication : Application() {
     override fun onCreate() {
@@ -23,5 +23,8 @@ class GalleryApplication : Application() {
 
         // Initialize SearchHistoryRepository
         SearchHistoryRepository.initialize(AppDatabase.getInstance().getSearchHistoryDao())
+
+        // Create notification channels
+        createPollNotificationChannel(applicationContext)
     }
 }

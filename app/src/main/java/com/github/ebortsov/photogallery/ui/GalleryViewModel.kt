@@ -8,9 +8,6 @@ import androidx.paging.PagingConfig
 import androidx.paging.cachedIn
 import com.github.ebortsov.photogallery.data.GalleryPagingSource
 import com.github.ebortsov.photogallery.data.PHOTOS_PER_PAGE
-import com.github.ebortsov.photogallery.data.PhotoRepository
-import com.github.ebortsov.photogallery.data.PhotoRepositoryMock
-import com.github.ebortsov.photogallery.data.PhotoRepositoryUnsplashApi
 import com.github.ebortsov.photogallery.data.PreferencesRepository
 import com.github.ebortsov.photogallery.data.SearchHistoryRepository
 import kotlinx.coroutines.async
@@ -23,7 +20,6 @@ import kotlinx.coroutines.launch
 private const val TAG = "PhotoGalleryViewModel"
 
 class GalleryViewModel : ViewModel() {
-    private val photoRepository: PhotoRepository = PhotoRepositoryUnsplashApi()
     private val preferencesRepository = PreferencesRepository.getInstance()
     private val searchHistoryRepository = SearchHistoryRepository.getInstance()
 
@@ -38,10 +34,13 @@ class GalleryViewModel : ViewModel() {
     private var _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()
 
+    private var _isPolling = MutableStateFlow(false)
+    val isPolling = _isPolling.asStateFlow()
+
     private suspend fun initialLoad() {
         // Load the search query stored in the preferences
         val storedSearchQuery =
-            viewModelScope.async { preferencesRepository.readSearchQuery().first() }
+            viewModelScope.async { preferencesRepository.searchQuery.first() }
         _searchQuery.value = storedSearchQuery.await()
         _isLoading.value = true
     }
@@ -52,9 +51,18 @@ class GalleryViewModel : ViewModel() {
             initialLoad()
 
             launch {
-                preferencesRepository.readSearchQuery().collectLatest {
+                preferencesRepository.searchQuery.collectLatest {
+                    val oldValue = searchQuery.value
                     _searchQuery.value = it
-                    invalidatePagingSource()
+                    if (oldValue != it) {
+                        invalidatePagingSource()
+                    }
+                }
+            }
+
+            launch {
+                preferencesRepository.isPollingActive.collectLatest {
+                    _isPolling.value = it
                 }
             }
 
@@ -76,7 +84,6 @@ class GalleryViewModel : ViewModel() {
         PagingConfig(pageSize = PHOTOS_PER_PAGE)
     ) {
         GalleryPagingSource(
-            photoRepository,
             searchQuery.value
         ).also {
             pagingSource = it
@@ -96,6 +103,12 @@ class GalleryViewModel : ViewModel() {
                 // Store the query to the search history
                 searchHistoryRepository.addSearchQuery(newQuery)
             }
+        }
+    }
+
+    fun setIsPolling(isActive: Boolean) {
+        viewModelScope.launch {
+            preferencesRepository.writeIsPollingActive(isActive)
         }
     }
 }

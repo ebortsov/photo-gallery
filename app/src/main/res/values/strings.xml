@@ -4,4 +4,9 @@
     <string name="loading_error_message">Oops, something went wrong!</string>
     <string name="retry_button_text">retry</string>
     <string name="show_search_history">Show search history</string>
+    <string name="poll_channel_name">Poll Notifications</string>
+    <string name="new_photo_notification">New Photos are Available</string>
+    <string name="start_polling">Start Polling</string>
+    <string name="stop_polling">Stop Polling</string>
+    <string name="polling_label">Polling</string>
 </resources>

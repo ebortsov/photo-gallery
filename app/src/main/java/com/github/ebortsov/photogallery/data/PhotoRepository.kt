@@ -4,7 +4,8 @@ import android.util.Log
 import com.github.ebortsov.photogallery.data.api.AccessKeyInterceptor
 import com.github.ebortsov.photogallery.data.api.PhotoResponse
 import com.github.ebortsov.photogallery.data.api.UnsplashApi
-import com.github.ebortsov.photogallery.data.model.GalleryItem
+import com.github.ebortsov.photogallery.models.GalleryItem
+import com.github.ebortsov.photogallery.models.toGalleryItem
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import kotlinx.coroutines.delay

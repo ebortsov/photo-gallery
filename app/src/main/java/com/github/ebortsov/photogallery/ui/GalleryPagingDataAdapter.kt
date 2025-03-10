@@ -1,6 +1,5 @@
 package com.github.ebortsov.photogallery.ui
 
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.paging.PagingDataAdapter
@@ -10,7 +9,7 @@ import coil3.load
 import coil3.request.placeholder
 import com.github.ebortsov.photogallery.R
 import com.github.ebortsov.photogallery.databinding.ListItemGalleryBinding
-import com.github.ebortsov.photogallery.data.model.GalleryItem
+import com.github.ebortsov.photogallery.models.GalleryItem
 
 class PhotoViewHolder(
     private val binding: ListItemGalleryBinding
@@ -25,9 +24,13 @@ class PhotoViewHolder(
     }
 }
 
-class GalleryPagingDataAdapter :
+class GalleryPagingDataAdapter(val galleryViewModel: GalleryViewModel) :
     PagingDataAdapter<GalleryItem, PhotoViewHolder>(GalleryItemComparator) {
     override fun onBindViewHolder(holder: PhotoViewHolder, position: Int) {
+        if (position == 1) {
+            // The onBindViewHolder
+        }
+
         val photo = getItem(position)
         holder.bind(photo)
     }

@@ -1,6 +1,8 @@
 package com.github.ebortsov.photogallery.ui
 
+import android.Manifest
 import android.content.Context.INPUT_METHOD_SERVICE
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -9,6 +11,7 @@ import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.TextView
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -16,9 +19,13 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.paging.LoadState
+import androidx.paging.PagingData
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.work.WorkManager
 import com.github.ebortsov.photogallery.databinding.PhotoGalleryFragmentBinding
 import com.github.ebortsov.photogallery.databinding.SearchHistoryItemBinding
+import com.github.ebortsov.photogallery.features.poll.PhotoPollingDataSource
+import com.github.ebortsov.photogallery.models.GalleryItem
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -30,6 +37,11 @@ class GalleryFragment : Fragment() {
     private val binding: PhotoGalleryFragmentBinding get() = checkNotNull(_binding)
 
     private val galleryViewModel: GalleryViewModel by viewModels()
+
+    private val photoPollingDataSource by lazy {
+        val workManager = WorkManager.getInstance(requireContext())
+        PhotoPollingDataSource(workManager)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -45,7 +57,7 @@ class GalleryFragment : Fragment() {
         galleryViewModel // access property and force the view model initialization
 
         binding.photoGrid.layoutManager = GridLayoutManager(requireContext(), 3)
-        val adapter = GalleryPagingDataAdapter()
+        val adapter = GalleryPagingDataAdapter(galleryViewModel)
         binding.photoGrid.adapter = adapter
 
         addOnStartedCoroutine {
@@ -58,7 +70,7 @@ class GalleryFragment : Fragment() {
 
         addOnStartedCoroutine {
             delay(20) // dummy delay to ensure the collectLatest will not collect initial the call to API
-            galleryViewModel.galleryPages.collectLatest { pagingData ->
+            galleryViewModel.galleryPages.collectLatest { pagingData: PagingData<GalleryItem> ->
                 adapter.submitData(pagingData)
             }
         }
@@ -66,6 +78,12 @@ class GalleryFragment : Fragment() {
         addOnStartedCoroutine {
             galleryViewModel.searchHistory.collectLatest { history ->
                 populateSearchHistory(history)
+            }
+        }
+
+        addOnStartedCoroutine {
+            galleryViewModel.isPolling.collectLatest { isPolling ->
+                updatePolling(isPolling)
             }
         }
 
@@ -115,6 +133,13 @@ class GalleryFragment : Fragment() {
         binding.showSearchHistory.setOnClickListener {
             showRecentHistory(true)
         }
+
+        binding.pollingSwitch.setOnCheckedChangeListener { v, isChecked ->
+            galleryViewModel.setIsPolling(isChecked)
+        }
+
+        // Ask the permission to send notifications
+        requestPostNotificationPermission()
     }
 
     private fun showRecentHistory(show: Boolean) {
@@ -158,6 +183,29 @@ class GalleryFragment : Fragment() {
                 binding.searchView.setText(query)
             }
             searchItemBinding.root.text = query
+        }
+    }
+
+    private fun requestPostNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= 33) {
+            val notificationManager = NotificationManagerCompat.from(requireContext())
+            if (!notificationManager.areNotificationsEnabled()) {
+                requireActivity().requestPermissions(
+                    arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                    0
+                )
+            }
+        }
+    }
+
+    private fun updatePolling(isActive: Boolean) {
+        Log.d(TAG, "updatePolling")
+        binding.pollingSwitch.isChecked = isActive
+
+        if (isActive) {
+            photoPollingDataSource.startPhotoPolling()
+        } else {
+            photoPollingDataSource.cancelPhotoPolling()
         }
     }
 }

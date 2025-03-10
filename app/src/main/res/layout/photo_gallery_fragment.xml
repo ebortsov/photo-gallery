@@ -6,7 +6,7 @@
 
     <androidx.appcompat.widget.AppCompatEditText
         android:id="@+id/search_view"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="60dp"
         android:autofillHints="no"
         android:hint="@string/search_for_photos"
@@ -14,7 +14,32 @@
         android:inputType="text"
         android:maxLines="1"
         android:paddingStart="8dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/polling_switch_label"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <com.google.android.material.materialswitch.MaterialSwitch
+        android:id="@+id/polling_switch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="@id/search_view"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="@id/search_view" />
+
+    <TextView
+        android:paddingEnd="8dp"
+        android:paddingStart="8dp"
+        android:id="@+id/polling_switch_label"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:gravity="center"
+        android:labelFor="@+id/polling_switch"
+        android:text="@string/polling_label"
+        android:textAllCaps="true"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="@id/search_view"
+        app:layout_constraintRight_toLeftOf="@id/polling_switch"
+        app:layout_constraintTop_toTopOf="@id/search_view" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/search_history_layout"
@@ -33,23 +58,24 @@
             android:insetTop="0dp"
             android:insetBottom="0dp"
             android:paddingStart="8dp"
-            android:textSize="16dp"
             android:paddingTop="0dp"
             android:paddingBottom="0dp"
             android:text="Close search history"
             android:textAlignment="textStart"
             android:textColor="@color/light_gray"
+            android:textSize="16dp"
             app:layout_constraintTop_toTopOf="parent" />
 
         <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:layout_constraintTop_toBottomOf="@id/close_search_history">
+
             <LinearLayout
-                android:orientation="vertical"
                 android:id="@+id/search_history_linear_layout"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
         </androidx.core.widget.NestedScrollView>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
@@ -67,7 +93,6 @@
             android:id="@+id/show_search_history"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:textSize="16dp"
             android:backgroundTint="@android:color/transparent"
             android:insetTop="0dp"
             android:insetBottom="0dp"
@@ -77,6 +102,7 @@
             android:text="@string/show_search_history"
             android:textAlignment="textStart"
             android:textColor="@color/light_gray"
+            android:textSize="16dp"
             app:layout_constraintTop_toTopOf="parent" />
 
         <com.google.android.material.progressindicator.LinearProgressIndicator

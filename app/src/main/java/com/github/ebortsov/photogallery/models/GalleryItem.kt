@@ -1,4 +1,4 @@
-package com.github.ebortsov.photogallery.data.model
+package com.github.ebortsov.photogallery.models
 
 data class GalleryItem(
     val title: String,
