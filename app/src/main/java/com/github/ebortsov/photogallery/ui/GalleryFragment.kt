@@ -12,6 +12,9 @@ import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.TextView
+import androidx.activity.OnBackPressedCallback
+import androidx.activity.addCallback
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
@@ -19,7 +22,6 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.navigation.fragment.findNavController
 import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.recyclerview.widget.GridLayoutManager
@@ -61,11 +63,8 @@ class GalleryFragment : Fragment() {
         binding.photoGrid.layoutManager = GridLayoutManager(requireContext(), 3)
         val adapter = GalleryPagingDataAdapter { _, item ->
             // onPhotoClickListener
-            findNavController().navigate(
-                GalleryFragmentDirections.galleryFragmentToPhotoPageFragment(
-                    item.unsplashPhotoPageUri
-                )
-            )
+            val intent = CustomTabsIntent.Builder().build()
+            intent.launchUrl(requireContext(), item.unsplashPhotoPageUri)
         }
 
         binding.photoGrid.adapter = adapter
@@ -94,6 +93,26 @@ class GalleryFragment : Fragment() {
         addOnStartedCoroutine {
             galleryViewModel.isPolling.collectLatest { isPolling ->
                 updatePolling(isPolling)
+            }
+        }
+
+        val searchHistoryBackPressedCallback = object : OnBackPressedCallback(false) {
+            override fun handleOnBackPressed() {
+                galleryViewModel.setIsSearchHistoryOpen(false)
+            }
+        }
+        requireActivity().onBackPressedDispatcher.addCallback(
+            viewLifecycleOwner,
+            searchHistoryBackPressedCallback
+        )
+
+        addOnStartedCoroutine {
+            galleryViewModel.isSearchHistoryOpen.collectLatest { isOpen ->
+                showRecentHistory(isOpen)
+
+                // If the search history is open,
+                // then the back button should close this search history
+                searchHistoryBackPressedCallback.isEnabled = isOpen
             }
         }
 
@@ -130,7 +149,7 @@ class GalleryFragment : Fragment() {
                 v.clearFocus()
 
                 // Close the history (if was open)
-                showRecentHistory(false)
+                galleryViewModel.setIsSearchHistoryOpen(false)
                 true
             } else {
                 false
@@ -138,10 +157,10 @@ class GalleryFragment : Fragment() {
         }
 
         binding.closeSearchHistory.setOnClickListener {
-            showRecentHistory(false)
+            galleryViewModel.setIsSearchHistoryOpen(false)
         }
         binding.showSearchHistory.setOnClickListener {
-            showRecentHistory(true)
+            galleryViewModel.setIsSearchHistoryOpen(true)
         }
 
         binding.pollingSwitch.setOnCheckedChangeListener { _, isChecked ->

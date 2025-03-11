@@ -37,6 +37,9 @@ class GalleryViewModel : ViewModel() {
     private var _isPolling = MutableStateFlow(false)
     val isPolling = _isPolling.asStateFlow()
 
+    private var _isSearchHistoryOpen = MutableStateFlow(false)
+    val isSearchHistoryOpen = _isSearchHistoryOpen.asStateFlow()
+
     private suspend fun initialLoad() {
         // Load the search query stored in the preferences
         val storedSearchQuery =
@@ -92,7 +95,6 @@ class GalleryViewModel : ViewModel() {
         .flow
         .cachedIn(viewModelScope)
 
-
     fun setQuery(newQuery: String) {
         viewModelScope.launch {
             launch {
@@ -106,9 +108,14 @@ class GalleryViewModel : ViewModel() {
         }
     }
 
+
     fun setIsPolling(isActive: Boolean) {
         viewModelScope.launch {
             preferencesRepository.writeIsPollingActive(isActive)
         }
+    }
+
+    fun setIsSearchHistoryOpen(isOpen: Boolean) {
+        _isSearchHistoryOpen.value = isOpen
     }
 }
