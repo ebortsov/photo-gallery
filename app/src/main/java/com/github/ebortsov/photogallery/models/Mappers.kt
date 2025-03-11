@@ -11,6 +11,7 @@ internal fun PhotoResponse.toGalleryItem(): GalleryItem {
     return GalleryItem(
         title = slug?.let { slugToTitle(it) } ?: "Missing Title",
         id = id,
+        slug = slug ?: "",
         urls = GalleryItem.Urls(
             regular = urls.regular,
             small = urls.small,

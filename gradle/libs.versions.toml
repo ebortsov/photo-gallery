@@ -24,6 +24,7 @@ secretsGradle = "2.0.1"
 ksp = "2.1.10-1.0.29" # The first part (2.1.10 in this case) MUST be the same as the kotlin version
 moshi = "1.15.2"
 converterMoshi = "2.11.0"
+safeArgs = "2.8.8"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -53,6 +54,9 @@ converter-moshi = { group = "com.squareup.retrofit2", name = "converter-moshi", 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
-android-gradle-secrets = { id = "com.google.android.libraries.mapsplatform.secrets-gradle-plugin", version.ref = "secretsGradle"}
+android-gradle-secrets = { id = "com.google.android.libraries.mapsplatform.secrets-gradle-plugin", version.ref = "secretsGradle" }
 devtools-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+androidx-navigation-safeargs-kotlin = { id = "androidx.navigation.safeargs.kotlin", version.ref = "safeArgs" }
+
+
 

@@ -1,6 +1,7 @@
 package com.github.ebortsov.photogallery.ui
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
@@ -11,26 +12,28 @@ import com.github.ebortsov.photogallery.R
 import com.github.ebortsov.photogallery.databinding.ListItemGalleryBinding
 import com.github.ebortsov.photogallery.models.GalleryItem
 
+typealias onPhotoClickListener = (v: View, item: GalleryItem) -> Unit
+
 class PhotoViewHolder(
-    private val binding: ListItemGalleryBinding
+    private val binding: ListItemGalleryBinding,
+    private val onPhotoClickListener: onPhotoClickListener
 ) : RecyclerView.ViewHolder(binding.root) {
     fun bind(galleryItem: GalleryItem?) {
         binding.itemImageView.setImageResource(R.drawable.image_downloading)
-        galleryItem?.let {
-            binding.itemImageView.load(it.urls.thumb) {
+        galleryItem?.let { item ->
+            binding.itemImageView.load(item.urls.thumb) {
                 placeholder(R.drawable.image_downloading)
+            }
+            binding.itemImageView.setOnClickListener { v ->
+                onPhotoClickListener(v, item)
             }
         }
     }
 }
 
-class GalleryPagingDataAdapter(val galleryViewModel: GalleryViewModel) :
+class GalleryPagingDataAdapter(private val onPhotoClickListener: onPhotoClickListener) :
     PagingDataAdapter<GalleryItem, PhotoViewHolder>(GalleryItemComparator) {
     override fun onBindViewHolder(holder: PhotoViewHolder, position: Int) {
-        if (position == 1) {
-            // The onBindViewHolder
-        }
-
         val photo = getItem(position)
         holder.bind(photo)
     }
@@ -38,7 +41,7 @@ class GalleryPagingDataAdapter(val galleryViewModel: GalleryViewModel) :
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PhotoViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         val binding = ListItemGalleryBinding.inflate(inflater, parent, false)
-        return PhotoViewHolder(binding)
+        return PhotoViewHolder(binding, onPhotoClickListener)
     }
 }
 

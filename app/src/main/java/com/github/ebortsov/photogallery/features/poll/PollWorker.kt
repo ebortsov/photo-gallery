@@ -51,8 +51,6 @@ class PollWorker(private val appContext: Context, workerParams: WorkerParameters
             } else {
                 Log.w(TAG, "doWork: notifications are not enabled")
             }
-        } else {
-            Log.d(TAG, "")
         }
         return Result.success()
     }

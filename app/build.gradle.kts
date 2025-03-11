@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.android.gradle.secrets)
     alias(libs.plugins.devtools.ksp)
+    alias(libs.plugins.androidx.navigation.safeargs.kotlin)
 }
 
 secrets {
@@ -108,4 +109,12 @@ dependencies {
 
     // Work
     implementation("androidx.work:work-runtime-ktx:2.10.0")
+
+    // Navigation
+    implementation("androidx.navigation:navigation-fragment-ktx:2.8.8")
+    implementation("androidx.navigation:navigation-ui-ktx:2.8.8")
+
+    // Custom tabs
+    implementation("androidx.browser:browser:1.8.0")
+
 }

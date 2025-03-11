@@ -2,6 +2,7 @@ package com.github.ebortsov.photogallery.ui
 
 import android.Manifest
 import android.content.Context.INPUT_METHOD_SERVICE
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -18,11 +19,12 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.work.WorkManager
-import com.github.ebortsov.photogallery.databinding.PhotoGalleryFragmentBinding
+import com.github.ebortsov.photogallery.databinding.FragmentPhotoGalleryBinding
 import com.github.ebortsov.photogallery.databinding.SearchHistoryItemBinding
 import com.github.ebortsov.photogallery.features.poll.PhotoPollingDataSource
 import com.github.ebortsov.photogallery.models.GalleryItem
@@ -33,8 +35,8 @@ import kotlinx.coroutines.launch
 private const val TAG = "PhotoGalleryFragment"
 
 class GalleryFragment : Fragment() {
-    private var _binding: PhotoGalleryFragmentBinding? = null
-    private val binding: PhotoGalleryFragmentBinding get() = checkNotNull(_binding)
+    private var _binding: FragmentPhotoGalleryBinding? = null
+    private val binding: FragmentPhotoGalleryBinding get() = checkNotNull(_binding)
 
     private val galleryViewModel: GalleryViewModel by viewModels()
 
@@ -48,7 +50,7 @@ class GalleryFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = PhotoGalleryFragmentBinding.inflate(inflater, container, false)
+        _binding = FragmentPhotoGalleryBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -57,7 +59,15 @@ class GalleryFragment : Fragment() {
         galleryViewModel // access property and force the view model initialization
 
         binding.photoGrid.layoutManager = GridLayoutManager(requireContext(), 3)
-        val adapter = GalleryPagingDataAdapter(galleryViewModel)
+        val adapter = GalleryPagingDataAdapter { _, item ->
+            // onPhotoClickListener
+            findNavController().navigate(
+                GalleryFragmentDirections.galleryFragmentToPhotoPageFragment(
+                    item.unsplashPhotoPageUri
+                )
+            )
+        }
+
         binding.photoGrid.adapter = adapter
 
         addOnStartedCoroutine {
@@ -107,7 +117,7 @@ class GalleryFragment : Fragment() {
             adapter.retry()
         }
 
-        binding.searchView.setOnEditorActionListener { v, actionId, event ->
+        binding.searchView.setOnEditorActionListener { v, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                 // User submits the search query
                 val query = v.text?.toString() ?: ""
@@ -134,7 +144,7 @@ class GalleryFragment : Fragment() {
             showRecentHistory(true)
         }
 
-        binding.pollingSwitch.setOnCheckedChangeListener { v, isChecked ->
+        binding.pollingSwitch.setOnCheckedChangeListener { _, isChecked ->
             galleryViewModel.setIsPolling(isChecked)
         }
 
