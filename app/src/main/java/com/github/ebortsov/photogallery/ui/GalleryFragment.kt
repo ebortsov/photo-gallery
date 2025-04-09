@@ -34,7 +34,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-private const val TAG = "PhotoGalleryFragment"
+private const val TAG = "GalleryFragment"
 
 class GalleryFragment : Fragment() {
     private var _binding: FragmentPhotoGalleryBinding? = null
