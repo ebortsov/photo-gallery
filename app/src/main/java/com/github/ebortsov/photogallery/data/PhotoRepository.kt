@@ -1,17 +1,28 @@
 package com.github.ebortsov.photogallery.data
 
-import com.github.ebortsov.photogallery.data.api.PhotoInterceptor
+import android.util.Log
+import com.github.ebortsov.photogallery.data.api.AccessKeyInterceptor
 import com.github.ebortsov.photogallery.data.api.PhotoResponse
 import com.github.ebortsov.photogallery.data.api.UnsplashApi
-import com.github.ebortsov.photogallery.data.model.GalleryItem
-import com.github.ebortsov.photogallery.data.model.toGalleryItem
+import com.github.ebortsov.photogallery.models.GalleryItem
+import com.github.ebortsov.photogallery.models.toGalleryItem
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import kotlinx.coroutines.delay
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
+import kotlin.random.Random
 
-class PhotoRepository {
+const val PHOTOS_PER_PAGE = 30
+
+interface PhotoRepository {
+    suspend fun fetchPhotos(page: Int): List<GalleryItem>
+    suspend fun searchPhotos(query: String, page: Int): List<GalleryItem>
+}
+
+class PhotoRepositoryUnsplashApi : PhotoRepository {
     private val unsplashApi: UnsplashApi
 
     init {
@@ -21,22 +32,68 @@ class PhotoRepository {
             .addLast(KotlinJsonAdapterFactory())
             .build()
 
-        val okHttpClient = OkHttpClient.Builder()
-            .addInterceptor(PhotoInterceptor())
+        val loggingInterceptor = HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BASIC
+        }
+
+        val okHttpClient = OkHttpClient
+            .Builder()
+            .addInterceptor(AccessKeyInterceptor())
+            .addInterceptor(loggingInterceptor)
             .build()
 
-        val retrofit = Retrofit.Builder()
+        val apiCreator = Retrofit.Builder()
             .baseUrl("https://api.unsplash.com/") // Note the trailing slash
             .addConverterFactory(MoshiConverterFactory.create(moshi))
             .client(okHttpClient)
             .build()
 
-        unsplashApi = retrofit.create(UnsplashApi::class.java)
+        unsplashApi = apiCreator.create(UnsplashApi::class.java)
     }
 
-    suspend fun searchPhotos(query: String, perPage: Int = 10): List<GalleryItem> =
-        unsplashApi.searchPhotos(query, perPage).results.map(PhotoResponse::toGalleryItem)
+    override suspend fun fetchPhotos(page: Int): List<GalleryItem> {
+        val response = unsplashApi.fetchPhotos(page)
+        return response.map(PhotoResponse::toGalleryItem)
+    }
 
-    suspend fun fetchPhotos(perPage: Int = 10): List<GalleryItem> =
-        unsplashApi.fetchPhotos(perPage).map(PhotoResponse::toGalleryItem)
+    override suspend fun searchPhotos(query: String, page: Int): List<GalleryItem> {
+        val response = unsplashApi.searchPhotos(query, page)
+        return response.results.map(PhotoResponse::toGalleryItem)
+    }
+}
+
+class PhotoRepositoryMock : PhotoRepository {
+    override suspend fun fetchPhotos(page: Int): List<GalleryItem> {
+        val result = (1..PHOTOS_PER_PAGE).map {
+            val photoId = Random.nextLong().toString()
+            val photoUrl = loremPicsumPhotoUrl(photoId) // Nuh just fetch the same small photo
+            PhotoResponse(
+                id = photoId,
+                urls = PhotoResponse.Urls(
+                    raw = photoUrl,
+                    full = photoUrl,
+                    regular = photoUrl,
+                    small = photoUrl,
+                    thumb = photoUrl
+                ),
+                description = "Photo with id $photoId",
+                slug = "photo-$page-$photoId-RANDOMSUFFIX"
+            )
+        }
+        delay(2000) // simulate the delay
+
+        if (Random.nextInt(6) == 0) { // randomly throw exception for page with change 1/6
+            throw Exception("PhotoMockRepository test exception")
+        }
+        return result.map(PhotoResponse::toGalleryItem)
+    }
+
+    override suspend fun searchPhotos(query: String, page: Int): List<GalleryItem> {
+        Log.d(this::class.simpleName, "searchPhotos query=\"$query\" page=$page")
+        return fetchPhotos(page)
+    }
+
+    private fun loremPicsumPhotoUrl(id: String): String {
+        return "https://picsum.photos/seed/$id/200"
+    }
 }

@@ -1,68 +1,75 @@
 package com.github.ebortsov.photogallery.data
 
-import android.content.Context
 import androidx.datastore.core.DataStore
-import androidx.datastore.dataStore
-import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.preferencesDataStoreFile
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlin.reflect.KProperty
 
-class PreferencesRepository private constructor(
-    private val dataStore: DataStore<Preferences>
+class PreferencesDelegate<T>(
+    private val dataStore: DataStore<Preferences>,
+    private val key: Preferences.Key<T>,
+    private val defaultValue: T
 ) {
-    val storedQuery: Flow<String> = dataStore.data.map {
-        it[SEARCH_QUERY_KEY] ?: ""
-    }.distinctUntilChanged()
+    operator fun getValue(owner: Any, property: KProperty<*>): Flow<T> = dataStore.data.map {
+        it[key] ?: defaultValue
+    }
+}
 
-    suspend fun setStoredQuery(query: String) {
-        dataStore.edit {
-            it[SEARCH_QUERY_KEY] = query
+suspend fun <T> DataStore<Preferences>.write(value: T, key: Preferences.Key<T>) {
+    edit {
+        if (value == null) {
+            it.remove(key)
+        } else {
+            it[key] = value
         }
     }
+}
 
-    val lastFetchedPhotoId: Flow<String> = dataStore.data.map {
-        it[LAST_FETCHED_PHOTO_ID_KEY] ?: ""
+class PreferencesRepository private constructor(private val dataStore: DataStore<Preferences>) {
+    private object PreferencesKeys {
+        val SEARCH_QUERY = stringPreferencesKey("search-query")
+        val LAST_FETCHED_PHOTO_ID = stringPreferencesKey("last-fetched-photo-id")
+        val IS_POLLING_ACTIVE = booleanPreferencesKey("is-polling-active")
     }
 
-    suspend fun setLastFetchedPhotoId(lastResultId: String) {
-        dataStore.edit {
-            it[LAST_FETCHED_PHOTO_ID_KEY] = lastResultId
-        }
-    }
+    val isPollingActive by PreferencesDelegate(
+        dataStore,
+        PreferencesKeys.IS_POLLING_ACTIVE,
+        false
+    )
 
-    val isPolling: Flow<Boolean> = dataStore.data.map {
-        it[IS_POLLING_KEY] ?: false
-    }
+    suspend fun writeIsPollingActive(isPollingActive: Boolean) =
+        dataStore.write(isPollingActive, PreferencesKeys.IS_POLLING_ACTIVE)
 
-    suspend fun setPolling(isPolling: Boolean) {
-        dataStore.edit {
-            it[IS_POLLING_KEY] = isPolling
-        }
-    }
+    val lastFetchedPhotoId by PreferencesDelegate(
+        dataStore,
+        PreferencesKeys.LAST_FETCHED_PHOTO_ID,
+        ""
+    )
+
+    suspend fun writeLastFetchedPhotoId(lastFetchedPhotoId: String) =
+        dataStore.write(lastFetchedPhotoId, PreferencesKeys.LAST_FETCHED_PHOTO_ID)
+
+    val searchQuery: Flow<String> by PreferencesDelegate(
+        dataStore,
+        PreferencesKeys.SEARCH_QUERY,
+        ""
+    )
+
+    suspend fun writeSearchQuery(query: String) =
+        dataStore.write(query, PreferencesKeys.SEARCH_QUERY)
+
     companion object {
         private var instance: PreferencesRepository? = null
 
-        private val SEARCH_QUERY_KEY = stringPreferencesKey("search_query")
-        private val LAST_FETCHED_PHOTO_ID_KEY = stringPreferencesKey("last_result_id")
-        private val IS_POLLING_KEY = booleanPreferencesKey("isPolling")
-
-        fun initialize(context: Context) {
-            if (instance == null) {
-                val dataStore = PreferenceDataStoreFactory.create {
-                    context.preferencesDataStoreFile("settings")
-                }
-
-                instance = PreferencesRepository(dataStore)
-            }
+        fun initialize(dataStore: DataStore<Preferences>) {
+            instance = PreferencesRepository(dataStore)
         }
 
-        fun get(): PreferencesRepository =
-            instance ?: throw IllegalStateException("PreferencesRepository must be initialized")
+        fun getInstance() = checkNotNull(instance) { "PreferencesRepository must be initialized" }
     }
 }
